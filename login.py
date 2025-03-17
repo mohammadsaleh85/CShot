@@ -1,20 +1,27 @@
-import json
+import sqlite3
 import pygame
-import os
+import hashlib
 
-# Load user data from JSON file
-def load_user_data():
-    if os.path.exists('users.json'):
-        with open('users.json', 'r') as file:
-            return json.load(file)
-    return {}
 
-# Save user data to JSON file
-def save_user_data(data):
-    with open('users.json', 'w') as file:
-        json.dump(data, file, indent=4)
+# Create a function to hash the password
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-user_data = load_user_data()
+# Connect to the database
+conn = sqlite3.connect('game.db')
+
+# Create a cursor
+cursor = conn.cursor()
+
+# Create a table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    score INTEGER DEFAULT 0
+)
+''')
 
 pygame.init()
 
@@ -73,19 +80,23 @@ while running:
             if sign_in_button.collidepoint(event.pos):
                 print("Sign In button clicked")
                 # sign-in logic
-                if usrname in user_data and user_data[usrname] == password:
+                hashed_password = hash_password(password)
+                cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (usrname, hashed_password))
+                user = cursor.fetchone()
+                if user:
                     message = 'Login successful'
                 else:
                     message = 'Invalid username or password'
             if sign_up_button.collidepoint(event.pos):
                 print("Sign Up button clicked")
                 # sign-up logic 
-                if usrname in user_data:
-                    message = 'User already exists'
-                else:
-                    user_data[usrname] = password
-                    save_user_data(user_data)
+                try:
+                    hashed_password = hash_password(password)
+                    cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (usrname, hashed_password))
+                    conn.commit()
                     message = 'User created successfully'
+                except sqlite3.IntegrityError:
+                    message = 'User already exists'
 
         if event.type == pygame.KEYDOWN:
             if active1:
@@ -133,3 +144,8 @@ while running:
     draw_text('Sign Up', font, BLACK, screen, sign_up_button.x + 10, sign_up_button.y + 10)    
 
     pygame.display.flip()
+
+pygame.quit()
+
+# Close the database connection
+conn.close()
