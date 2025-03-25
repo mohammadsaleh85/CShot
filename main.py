@@ -7,6 +7,11 @@ width = 1000
 
 pygame.init()
 
+# initialize the font
+font = pygame.font.Font(None, 36)  # Font for displaying time
+# intialize the clock
+clock = pygame.time.Clock()  # Clock to control the frame rate
+
 #player class
 class Player(pygame.sprite.Sprite):
     def __init__(self,is_player1 = True,init_num = 10,init_time = 60):
@@ -17,8 +22,8 @@ class Player(pygame.sprite.Sprite):
         self.surf.fill((255,255,255))
         self.rect = self.surf.get_rect()
         self.speed = 10
-        self.bullet = []
         self.num = init_num
+        self.score = 0
 
     def random_position(self):
         self.rect.x = random.randint(0,width)
@@ -29,7 +34,8 @@ class Player(pygame.sprite.Sprite):
         (event.key == pygame.K_SPACE and self.is_player1 == False) or
         (event.key == pygame.K_RETURN and self.is_player1)):
             self.num -= 1
-            self.bullet.append(Bullet(self.is_player1,self.rect.x,self.rect.y))
+            all_sprites.add(Bullet(self.is_player1,self.rect.x,self.rect.y))
+            bullets.add(Bullet(self.is_player1,self.rect.x,self.rect.y))
     
     def move(self):
         keys = pygame.key.get_pressed()
@@ -76,6 +82,39 @@ class Bullet(pygame.sprite.Sprite):
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, self.rect.center, self.radius)  # Draw the bullet as a circle
 
+# target class
+class Target(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Target,self).__init__()
+        self.surf = pygame.Surface((20,20))
+        self.rect = self.surf.get_rect()
+        self.rect.x = random.randint(0,width)
+        self.rect.y = random.randint(0,height)
+
+# time_target class
+class Time_target(Target):
+    def __init__(self):
+        super(Time_target,self).__init__()
+    
+    def draw(self,screen):
+        pygame.draw.circle(screen,(0,0,0),self.rect.center,10)
+
+# bullet_target class
+class Bullet_target(Target):
+    def __init__(self):
+        super(Bullet_target,self).__init__()
+    
+    def draw(self,screen):
+        pygame.draw.polygon(screen,(0,0,0),[(self.rect.x,self.rect.y),(self.rect.x+10,self.rect.y+20),(self.rect.x+20,self.rect.y)])
+
+# score_target class
+class Score_target(Target):
+    def __init__(self):
+        super(Score_target,self).__init__()
+    
+    def draw(self,screen):
+        pygame.draw.rect(screen,(0,0,0),self.rect)
+    
 #to create screen 
 screen = pygame.display.set_mode((width,height))
 
@@ -94,8 +133,15 @@ p2 = Player(is_player1=False)
 p1.random_position()
 p2.random_position()
 
-p2.surf.fill((0,0,0))
+#p2.surf.fill((0,0,0))
 
+targets = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
+all_sprites.add(p1)
+all_sprites.add(p2)
+
+# Update the game loop
 while True:
     # Handle events
     for event in pygame.event.get():
@@ -105,18 +151,82 @@ while True:
             p1.shoot(event)
             p2.shoot(event)
 
+    # Decrease player time
+    p1.time -= 1 / 60  # Decrease time for Player 1 (1 second per 60 frames)
+    p2.time -= 1 / 60  # Decrease time for Player 2
+    # prevent time from going negative
+    p1.time = max(0, p1.time)
+    p2.time = max(0, p2.time)
+
+    # End the game if time runs out
+    if p1.time <= 0 and p2.time <= 0:
+        print("Game Over!")
+        exit()
+    # End the game if bullets end
+    if p1.num <= 0 and p2.num <= 0:
+        print("Game Over!")
+        exit()
+
     # Player actions
     p1.move()
     p2.move()
 
-        # Draw everything
+    # Draw everything
     screen.blit(background, (0, 0))
-    screen.blit(p1.surf, p1.rect)
-    screen.blit(p2.surf, p2.rect)
-    for bullet in p1.bullet:
-        bullet.draw(screen)
-    for bullet in p2.bullet:
-        bullet.draw(screen)
+    for enity in all_sprites:
+        if type(enity) == Bullet:
+            enity.draw(screen)
+    for target in targets:
+        target.draw(screen)
+
+    if len(targets) < 5:
+        target = random.choice([Time_target(), Bullet_target(), Score_target()])
+        targets.add(target)
+
+    # Check for collision
+    for bullet in bullets:
+        for target in targets:
+            if bullet.rect.colliderect(target.rect):
+                if type(target) == Time_target:
+                    if bullet.is_player1:
+                        p1.time += 5
+                    else:
+                        p2.time += 5
+                if type(target) == Bullet_target:
+                    if bullet.is_player1:
+                        p1.num += 5
+                    else:
+                        p2.num += 5
+                if type(target) == Score_target:
+                    if bullet.is_player1:
+                        p1.score += 5
+                    else:
+                        p2.score += 5
+                targets.remove(target)
+                all_sprites.remove(target)
+                bullets.remove(bullet)
+                all_sprites.remove(bullet)
+
+    # Display remaining time, bullets, and score
+    p1_time_text = font.render(f"Player 1 Time: {int(p1.time)}", True, (255, 255, 255))
+    p2_time_text = font.render(f"Player 2 Time: {int(p2.time)}", True, (255, 255, 255))
+    p1_bullet_text = font.render(f"Player 1 Bullets: {p1.num}", True, (255, 255, 255))
+    p2_bullet_text = font.render(f"Player 2 Bullets: {p2.num}", True, (255, 255, 255))
+    p1_score_text = font.render(f"Player 1 Score: {p1.score}", True, (255, 255, 255))
+    p2_score_text = font.render(f"Player 2 Score: {p2.score}", True, (255, 255, 255))
+
+    # Display Player 1's stats
+    screen.blit(p1_time_text, (10, 10))  # Time at the top-left
+    screen.blit(p1_bullet_text, (10, 40))  # Bullets below time
+    screen.blit(p1_score_text, (10, 70))  # Score below bullets
+
+    # Display Player 2's stats
+    screen.blit(p2_time_text, (700, 10))  # Time at the top-right
+    screen.blit(p2_bullet_text, (700, 40))  # Bullets below time
+    screen.blit(p2_score_text, (700, 70))  # Score below bullets
 
     # Update the display
     pygame.display.update()
+
+    # Control the frame rate
+    clock.tick(60)  # Limit the frame rate to 60 FPS
