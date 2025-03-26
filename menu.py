@@ -1,65 +1,69 @@
 import pygame
+import subprocess
 
 pygame.init()
 
-width , height = 800 , 500
-screen = pygame.display.set_mode((width,height))
-pygame.display.set_caption('menu')
+width, height = 800, 500
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption('Menu')
 
-# load button images
+# Load button images
 start_img = pygame.image.load("start_btn.png").convert_alpha()
 exit_img = pygame.image.load("exit_btn.png").convert_alpha()
 
-#button class
+# Button class
 class Button():
-	def __init__(self, x, y, image, scale):
-		width = image.get_width()
-		height = image.get_height()
-		self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
-		self.rect = self.image.get_rect()
-		self.rect.topleft = (x, y)
-		self.clicked = False
+    def __init__(self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.clicked = False
 
-	def draw(self, surface):
-		action = False
-		#get mouse position
-		pos = pygame.mouse.get_pos()
+    def draw(self, surface):
+        action = False
+        pos = pygame.mouse.get_pos()
 
-		#check mouseover and clicked conditions
-		if self.rect.collidepoint(pos):
-			if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
-				self.clicked = True
-				action = True
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
+                self.clicked = True
+                action = True
 
-		if pygame.mouse.get_pressed()[0] == 0:
-			self.clicked = False
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
 
-		#draw button on screen
-		surface.blit(self.image, (self.rect.x, self.rect.y))
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+        return action
 
-		return action
-
-#create button instances
+# Create button instances
 start_button = Button(100, 200, start_img, 0.8)
 exit_button = Button(450, 200, exit_img, 0.8)
 
-#game loop
+# Game loop
 run = True
+username1 = None  # Store the username
+username2 = None
 while run:
+    screen.fill((202, 228, 241))
 
-	screen.fill((202, 228, 241))
+    if start_button.draw(screen):
+        # Run login.py and capture the username
+        result1 = subprocess.run(["python", "login.py"], capture_output=True, text=True)
+        username1 = result1.stdout.strip().split("\n")[-1]  # Get the last line of the output
+        result2 = subprocess.run(["python", "login.py"], capture_output=True, text=True)
+        username2 = result2.stdout.strip().split("\n")[-1]  # Get the last line of the output
 
-	if start_button.draw(screen):
-		import main
-	if exit_button.draw(screen):
-		run = False
+        # Run main.py and pass the usernames as arguments
+        subprocess.run(["python", "main.py", username1, username2])
 
-	#event handler
-	for event in pygame.event.get():
-		#quit game
-		if event.type == pygame.QUIT:
-			run = False
+    if exit_button.draw(screen):
+        run = False
 
-	pygame.display.update()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+
+    pygame.display.update()
 
 pygame.quit()

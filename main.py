@@ -1,9 +1,18 @@
 import random
 import pygame
-from sys import exit
+import sys
 
 height = 600
 width = 1000
+
+# Get usernames from command-line arguments
+print(sys.argv)
+if len(sys.argv) > 2:
+    username1 = sys.argv[1]
+    username2 = sys.argv[2]
+else:
+    username1 = "Player 1"
+    username2 = "Player 2"
 
 pygame.init()
 
@@ -18,10 +27,10 @@ class Player(pygame.sprite.Sprite):
         super(Player,self).__init__()
         self.is_player1 = is_player1
         self.time = init_time
-        self.surf = pygame.Surface((20,20))
+        self.surf = pygame.Surface((15,15))
         self.surf.fill((255,255,255))
         self.rect = self.surf.get_rect()
-        self.speed = 10
+        self.speed = 8
         self.num = init_num
         self.score = 0
 
@@ -75,8 +84,8 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, is_player1, x, y):
         super(Bullet, self).__init__()
         self.is_player1 = is_player1
-        self.radius = 10  # Radius of the bullet
-        self.color = (255, 0, 0) if is_player1 else (0, 0, 255)  # Red for Player 1, Blue for Player 2
+        self.radius = 7  # Radius of the bullet
+        self.color = "yellow" if is_player1 else "red"  # Red for Player 1, Blue for Player 2
         self.rect = pygame.Rect(x, y, self.radius * 2, self.radius * 2)  # Define the bullet's bounding box
     
     def draw(self, screen):
@@ -88,7 +97,7 @@ class Target(pygame.sprite.Sprite):
         super().__init__()
         self.set_image(image_path, size)
         self.rect.x = random.randint(0, width - self.rect.width)
-        self.rect.y = random.randint(0, height - self.rect.height)
+        self.rect.y = random.randint(80, height - self.rect.height)
 
     def set_image(self, image_path, size):
         self.image = pygame.image.load(image_path).convert_alpha()
@@ -126,7 +135,7 @@ class Score_target(Target):
 screen = pygame.display.set_mode((width,height))
 
 #to create title for game
-pygame.display.set_caption("cShot_E3")
+pygame.display.set_caption("CShot_E3")
 
 #to set a background
 background = pygame.image.load('aaa.png')
@@ -186,9 +195,29 @@ while True:
     for target in targets:
         target.draw(screen)
 
-    if len(targets) < 5:
-        target = random.choice([Time_target(), Bullet_target(), Score_target()])
-        targets.add(target)
+    if len(targets) < 7:
+        # Define target types and their probabilities
+        target_types = [Time_target, Bullet_target, Score_target]
+        target_weights = [0.15, 0.15, 0.7]  # Probabilities: 15% Time, 15% Bullet, 70% Score
+
+        # Create a new target based on weighted probabilities
+        new_target_class = random.choices(target_types, weights=target_weights, k=1)[0]
+        new_target = new_target_class()
+
+        # Check for collisions with existing targets
+        collision = True
+        while collision:
+            collision = False
+            for existing_target in targets:
+                if new_target.rect.colliderect(existing_target.rect):
+                    # If there's a collision, reposition the new target
+                    new_target.rect.x = random.randint(0, width - new_target.rect.width)
+                    new_target.rect.y = random.randint(80, height - new_target.rect.height)
+                    collision = True  # Continue checking for collisions
+                    break
+
+        # Add the new target to the game
+        targets.add(new_target)
 
     # Check for collision
     for bullet in bullets:
@@ -201,26 +230,26 @@ while True:
                         p2.time += 5
                 if type(target) == Bullet_target:
                     if bullet.is_player1:
-                        p1.num += 5
+                        p1.num += 3
                     else:
-                        p2.num += 5
+                        p2.num += 3
                 if type(target) == Score_target:
                     if bullet.is_player1:
-                        p1.score += 5
+                        p1.score += 100
                     else:
-                        p2.score += 5
+                        p2.score += 100
                 targets.remove(target)
                 all_sprites.remove(target)
                 bullets.remove(bullet)
                 all_sprites.remove(bullet)
 
     # Display remaining time, bullets, and score
-    p1_time_text = font.render(f"Player 1 Time: {int(p1.time)}", True, (255, 255, 0))
-    p2_time_text = font.render(f"Player 2 Time: {int(p2.time)}", True, (0, 255, 255))
-    p1_bullet_text = font.render(f"Player 1 Bullets: {p1.num}", True, (255, 255, 0))
-    p2_bullet_text = font.render(f"Player 2 Bullets: {p2.num}", True, (0, 255, 255))
-    p1_score_text = font.render(f"Player 1 Score: {p1.score}", True, (255, 255, 0))
-    p2_score_text = font.render(f"Player 2 Score: {p2.score}", True, (0, 255, 255))
+    p1_time_text = font.render(f"{username1} Time: {int(p1.time)}", True, (255, 255, 0))
+    p2_time_text = font.render(f"{username2} Time: {int(p2.time)}", True, (0, 255, 255))
+    p1_bullet_text = font.render(f"{username1} Bullets: {p1.num}", True, (255, 255, 0))
+    p2_bullet_text = font.render(f"{username2} Bullets: {p2.num}", True, (0, 255, 255))
+    p1_score_text = font.render(f"{username1} Score: {p1.score}", True, (255, 255, 0))
+    p2_score_text = font.render(f"{username2} Score: {p2.score}", True, (0, 255, 255))
 
     # Display Player 1's stats
     screen.blit(p1_time_text, (10, 10))  # Time at the top-left

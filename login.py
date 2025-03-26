@@ -1,7 +1,7 @@
 import sqlite3
 import pygame
 import hashlib
-
+import sys
 
 # Create a function to hash the password
 def hash_password(password):
@@ -78,23 +78,26 @@ while running:
             color1 = color_active if active1 else color_inactive
             color2 = color_active if active2 else color_inactive
             if sign_in_button.collidepoint(event.pos):
-                print("Sign In button clicked")
+                #print("Sign In button clicked")
                 # sign-in logic
                 hashed_password = hash_password(password)
                 cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (usrname, hashed_password))
                 user = cursor.fetchone()
                 if user:
                     message = 'Login successful'
+                    print(usrname)
+                    pygame.quit()
+                    sys.exit()
                 else:
                     message = 'Invalid username or password'
             if sign_up_button.collidepoint(event.pos):
-                print("Sign Up button clicked")
+                #print("Sign Up button clicked")
                 # sign-up logic 
                 try:
                     hashed_password = hash_password(password)
                     cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (usrname, hashed_password))
                     conn.commit()
-                    message = 'User created successfully'
+                    message = 'User created successfully Please sign in'
                 except sqlite3.IntegrityError:
                     message = 'User already exists'
 
