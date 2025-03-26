@@ -8,8 +8,8 @@ screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption('Menu')
 
 # Load button images
-start_img = pygame.image.load("start_btn.png").convert_alpha()
-score_img = pygame.image.load("scoreboard.png").convert_alpha()
+start_img = pygame.image.load("image/start_btn.png").convert_alpha()
+score_img = pygame.image.load("image/scoreboard.png").convert_alpha()
 
 # Button class
 class Button():

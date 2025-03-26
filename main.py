@@ -20,13 +20,13 @@ else:
 pygame.init()
 mixer.init()
 
-bomb_sound = mixer.Sound('duck.mp3')
-bullet_sound = mixer.Sound('arrow_s.mp3')
-score_sound = mixer.Sound('success.mp3')
-tictac = mixer.Sound('tictac.mp3')
-empty_shot = mixer.Sound('empty_shot.mp3')
+bomb_sound = mixer.Sound('sounds/duck.mp3')
+bullet_sound = mixer.Sound('sounds/arrow_s.mp3')
+score_sound = mixer.Sound('sounds/success.mp3')
+tictac = mixer.Sound('sounds/tictac.mp3')
+empty_shot = mixer.Sound('sounds/empty_shot.mp3')
 
-mixer.music.load('game_sound.mp3')
+mixer.music.load('sounds/game_sound.mp3')
 mixer.music.set_volume(0.3)
 mixer.music.play()
 bomb_sound.set_volume(0.8)
@@ -130,7 +130,7 @@ class Target(pygame.sprite.Sprite):
 # time_target class
 class Time_target(Target):
     def __init__(self):
-        super().__init__('clock.png',(30,30))
+        super().__init__('image/clock.png',(30,30))
     
     # def draw(self,screen):
     #     pygame.draw.circle(screen,(0,0,0),self.rect.center,10)
@@ -138,7 +138,7 @@ class Time_target(Target):
 # bomb_target class
 class Bomb_target(Target):
     def __init__(self):
-        super().__init__('bomb.png',(50,50))
+        super().__init__('image/bomb.png',(50,50))
 
     # def draw(self,screen):
     #     pygame.draw.rect(screen,(0,0,0),self.rect)
@@ -146,14 +146,14 @@ class Bomb_target(Target):
 # bullet_target class
 class Bullet_target(Target):
     def __init__(self):
-        super().__init__('arrow.png',(50,50))
+        super().__init__('image/arrow.png',(50,50))
 
     # def draw(self,screen):
     #     screen.blit(self.image , (self.rect.x , self.rect.y))
 # score_target class
 class Score_target(Target):
     def __init__(self):
-        super().__init__('score.png',(50,50))
+        super().__init__('image/score.png',(50,50))
     
     # def draw(self,screen):
     #     pygame.draw.rect(screen,(0,0,0),self.rect)
@@ -165,7 +165,7 @@ screen = pygame.display.set_mode((width,height))
 pygame.display.set_caption("CShot_E3")
 
 #to set a background
-background = pygame.image.load('aaa.png')
+background = pygame.image.load('image/aaa.png')
 background = pygame.transform.scale(background,(width,height))
 
 # Create player
