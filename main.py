@@ -29,7 +29,7 @@ empty_shot = mixer.Sound('empty_shot.mp3')
 mixer.music.load('game_sound.mp3')
 mixer.music.set_volume(0.3)
 mixer.music.play()
-bomb_sound.set_volume(1)
+bomb_sound.set_volume(0.8)
 
 
 # initialize the font
@@ -327,8 +327,9 @@ while True:
                         bonus = 100 * p2_consecutive_score_hits  # Bonus increases with consecutive hits
                         p2.score += bonus
                 elif type(target) == Bomb_target:
+                    bomb_sound.play()
                     if bullet.is_player1:
-                        bomb_sound.play()
+                        
                         p1.score -= 50
                         p1_consecutive_score_hits = 0  # Reset consecutive hits
                         
