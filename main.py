@@ -8,7 +8,7 @@ width = 1000
 pygame.init()
 
 # initialize the font
-font = pygame.font.Font(None, 36)  # Font for displaying time
+font = pygame.font.Font('slkscre.ttf', 20)  # Font for displaying time
 # intialize the clock
 clock = pygame.time.Clock()  # Clock to control the frame rate
 
@@ -84,36 +84,43 @@ class Bullet(pygame.sprite.Sprite):
 
 # target class
 class Target(pygame.sprite.Sprite):
-    def __init__(self):
-        super(Target,self).__init__()
-        self.surf = pygame.Surface((20,20))
-        self.rect = self.surf.get_rect()
-        self.rect.x = random.randint(0,width)
-        self.rect.y = random.randint(0,height)
+    def __init__(self,image_path,size = (50,50)):
+        super().__init__()
+        self.set_image(image_path, size)
+        self.rect.x = random.randint(0, width - self.rect.width)
+        self.rect.y = random.randint(0, height - self.rect.height)
+
+    def set_image(self, image_path, size):
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = pygame.transform.scale(self.image, size)
+        self.rect = self.image.get_rect()  
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect.topleft)
 
 # time_target class
 class Time_target(Target):
     def __init__(self):
-        super(Time_target,self).__init__()
+        super().__init__('clock.png',(30,30))
     
-    def draw(self,screen):
-        pygame.draw.circle(screen,(0,0,0),self.rect.center,10)
+    # def draw(self,screen):
+    #     pygame.draw.circle(screen,(0,0,0),self.rect.center,10)
+
 
 # bullet_target class
 class Bullet_target(Target):
     def __init__(self):
-        super(Bullet_target,self).__init__()
-    
-    def draw(self,screen):
-        pygame.draw.polygon(screen,(0,0,0),[(self.rect.x,self.rect.y),(self.rect.x+10,self.rect.y+20),(self.rect.x+20,self.rect.y)])
+        super().__init__('arrow.png',(50,50))
 
+    # def draw(self,screen):
+    #     screen.blit(self.image , (self.rect.x , self.rect.y))
 # score_target class
 class Score_target(Target):
     def __init__(self):
-        super(Score_target,self).__init__()
+        super().__init__('score.png',(50,50))
     
-    def draw(self,screen):
-        pygame.draw.rect(screen,(0,0,0),self.rect)
+    # def draw(self,screen):
+    #     pygame.draw.rect(screen,(0,0,0),self.rect)
     
 #to create screen 
 screen = pygame.display.set_mode((width,height))
@@ -208,12 +215,12 @@ while True:
                 all_sprites.remove(bullet)
 
     # Display remaining time, bullets, and score
-    p1_time_text = font.render(f"Player 1 Time: {int(p1.time)}", True, (255, 255, 255))
-    p2_time_text = font.render(f"Player 2 Time: {int(p2.time)}", True, (255, 255, 255))
-    p1_bullet_text = font.render(f"Player 1 Bullets: {p1.num}", True, (255, 255, 255))
-    p2_bullet_text = font.render(f"Player 2 Bullets: {p2.num}", True, (255, 255, 255))
-    p1_score_text = font.render(f"Player 1 Score: {p1.score}", True, (255, 255, 255))
-    p2_score_text = font.render(f"Player 2 Score: {p2.score}", True, (255, 255, 255))
+    p1_time_text = font.render(f"Player 1 Time: {int(p1.time)}", True, (255, 255, 0))
+    p2_time_text = font.render(f"Player 2 Time: {int(p2.time)}", True, (0, 255, 255))
+    p1_bullet_text = font.render(f"Player 1 Bullets: {p1.num}", True, (255, 255, 0))
+    p2_bullet_text = font.render(f"Player 2 Bullets: {p2.num}", True, (0, 255, 255))
+    p1_score_text = font.render(f"Player 1 Score: {p1.score}", True, (255, 255, 0))
+    p2_score_text = font.render(f"Player 2 Score: {p2.score}", True, (0, 255, 255))
 
     # Display Player 1's stats
     screen.blit(p1_time_text, (10, 10))  # Time at the top-left
