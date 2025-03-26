@@ -1,6 +1,7 @@
 import random
 import pygame
 import sys
+import sqlite3
 from pygame import mixer
 
 
@@ -8,7 +9,7 @@ height = 600
 width = 1000
 
 # Get usernames from command-line arguments
-print(sys.argv)
+#print(sys.argv)
 if len(sys.argv) > 2:
     username1 = sys.argv[1]
     username2 = sys.argv[2]
@@ -175,6 +176,50 @@ all_sprites = pygame.sprite.Group()
 all_sprites.add(p1)
 all_sprites.add(p2)
 
+# Function to display "Game Over" and wait for a key press
+def show_game_over():
+    # Connect to the database
+    conn = sqlite3.connect('game.db')
+    cursor = conn.cursor()
+
+    # Create a large font for the "Game Over" text
+    game_over_font = pygame.font.Font('slkscre.ttf', 100)  # Adjust font size as needed
+    game_over_text = game_over_font.render("GAME OVER", True, (255, 0, 0))  # Red text
+    text_rect = game_over_text.get_rect(center=(width // 2, height // 2 - 30))  # Center the text
+    
+    # Display the winner
+    winner_font = pygame.font.Font('slkscre.ttf', 40)  # Adjust font size as needed
+    if p1.score > p2.score:
+        winner = winner_font.render(f"{username1} Wins!", True, (255, 0, 0))
+        cursor.execute("UPDATE users SET score = score + 30 WHERE username = ?", (username1,)) if username1 != "Player 1" else None
+    elif p1.score < p2.score:
+        winner = winner_font.render(f"{username2} Wins!", True, (255, 0, 0))
+        cursor.execute("UPDATE users SET score = score + 30 WHERE username = ?", (username2,)) if username2 != "Player 2" else None
+    else:
+        winner = winner_font.render("It's a Tie!", True, (255, 0, 0))
+        cursor.execute("UPDATE users SET score = score + 10 WHERE username = ?", (username1,)) if username1 != "Player 1" else None
+        cursor.execute("UPDATE users SET score = score + 10 WHERE username = ?", (username2,)) if username2 != "Player 2" else None
+    
+    conn.commit()
+    conn.close()
+    winner_rect = winner.get_rect(center=(width // 2, height // 2 + 80))
+
+    # Display "Game Over" on the screen
+    screen.fill((0, 0, 0))  # Black background
+    screen.blit(game_over_text, text_rect)
+    screen.blit(winner, winner_rect)
+    pygame.display.flip()
+
+    # Wait for a key press or quit event
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                waiting = False  # Exit the loop when a key is pressed
+
 # Update the game loop
 while True:
     # Handle events
@@ -195,12 +240,14 @@ while True:
         tictac.play()
     # End the game if time runs out
     if p1.time <= 0 and p2.time <= 0:
-        print("Game Over!")
+        show_game_over()
+        #print("Game Over!")
         exit()
 
     # End the game if bullets end
     if p1.num <= 0 and p2.num <= 0:
-        print("Game Over!")
+        show_game_over()
+        #print("Game Over!")
         exit()
 
     # Player actions

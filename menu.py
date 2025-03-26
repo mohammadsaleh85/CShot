@@ -58,8 +58,9 @@ while run:
         subprocess.run(["python", "main.py", username1, username2])
 
     if scoreboard.draw(screen):
-        import leaderboard
-
+        # Run leaderboard.py
+        subprocess.run(["python", "leaderboard.py"])
+	
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
