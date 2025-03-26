@@ -134,6 +134,13 @@ class Time_target(Target):
     # def draw(self,screen):
     #     pygame.draw.circle(screen,(0,0,0),self.rect.center,10)
 
+# bomb_target class
+class Bomb_target(Target):
+    def __init__(self):
+        super().__init__('bomb.png',(50,50))
+
+    # def draw(self,screen):
+    #     pygame.draw.rect(screen,(0,0,0),self.rect)
 
 # bullet_target class
 class Bullet_target(Target):
@@ -220,6 +227,10 @@ def show_game_over():
             if event.type == pygame.KEYDOWN:
                 waiting = False  # Exit the loop when a key is pressed
 
+# Add counters for consecutive hits on Score_target
+p1_consecutive_score_hits = 0
+p2_consecutive_score_hits = 0
+
 # Update the game loop
 while True:
     # Handle events
@@ -262,10 +273,10 @@ while True:
     for target in targets:
         target.draw(screen)
 
-    if len(targets) < 7:
+    if len(targets) < 8:
         # Define target types and their probabilities
-        target_types = [Time_target, Bullet_target, Score_target]
-        target_weights = [0.15, 0.15, 0.7]  # Probabilities: 15% Time, 15% Bullet, 70% Score
+        target_types = [Time_target, Bullet_target, Bomb_target, Score_target]
+        target_weights = [0.15, 0.15, 0.15, 0.55]  # Probabilities: 15% Time, 15% Bullet, 70% Score
 
         # Create a new target based on weighted probabilities
         new_target_class = random.choices(target_types, weights=target_weights, k=1)[0]
@@ -293,19 +304,36 @@ while True:
                 if type(target) == Time_target:
                     if bullet.is_player1:
                         p1.time += 5
+                        p1_consecutive_score_hits = 0  # Reset consecutive hits
                     else:
                         p2.time += 5
-                if type(target) == Bullet_target:
+                        p2_consecutive_score_hits = 0  # Reset consecutive hits
+                elif type(target) == Bullet_target:
                     if bullet.is_player1:
                         p1.num += 3
+                        p1_consecutive_score_hits = 0  # Reset consecutive hits
                     else:
                         p2.num += 3
-                if type(target) == Score_target:
+                        p2_consecutive_score_hits = 0  # Reset consecutive hits
+                elif type(target) == Score_target:
                     score_sound.play()
                     if bullet.is_player1:
-                        p1.score += 100
+                        p1_consecutive_score_hits += 1
+                        bonus = 100 * p1_consecutive_score_hits  # Bonus increases with consecutive hits
+                        p1.score += bonus
                     else:
-                        p2.score += 100
+                        p2_consecutive_score_hits += 1
+                        bonus = 100 * p2_consecutive_score_hits  # Bonus increases with consecutive hits
+                        p2.score += bonus
+                elif type(target) == Bomb_target:
+                    if bullet.is_player1:
+                        p1.score -= 50
+                        p1_consecutive_score_hits = 0  # Reset consecutive hits
+                    else:
+                        p2.score -= 50
+                        p2_consecutive_score_hits = 0  # Reset consecutive hits
+
+                # Remove the target and bullet
                 targets.remove(target)
                 all_sprites.remove(target)
                 bullets.remove(bullet)
