@@ -20,6 +20,7 @@ else:
 pygame.init()
 mixer.init()
 
+bomb_sound = mixer.Sound('duck.mp3')
 bullet_sound = mixer.Sound('arrow_s.mp3')
 score_sound = mixer.Sound('success.mp3')
 tictac = mixer.Sound('tictac.mp3')
@@ -28,7 +29,7 @@ empty_shot = mixer.Sound('empty_shot.mp3')
 mixer.music.load('game_sound.mp3')
 mixer.music.set_volume(0.3)
 mixer.music.play()
-
+bomb_sound.set_volume(1)
 
 
 # initialize the font
@@ -327,8 +328,10 @@ while True:
                         p2.score += bonus
                 elif type(target) == Bomb_target:
                     if bullet.is_player1:
+                        bomb_sound.play()
                         p1.score -= 50
                         p1_consecutive_score_hits = 0  # Reset consecutive hits
+                        
                     else:
                         p2.score -= 50
                         p2_consecutive_score_hits = 0  # Reset consecutive hits
