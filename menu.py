@@ -8,7 +8,7 @@ pygame.display.set_caption('menu')
 
 # load button images
 start_img = pygame.image.load("start_btn.png").convert_alpha()
-exit_img = pygame.image.load("exit_btn.png").convert_alpha()
+exit_img = pygame.image.load("scoreboard.png").convert_alpha()
 
 #button class
 class Button():
@@ -41,7 +41,7 @@ class Button():
 
 #create button instances
 start_button = Button(100, 200, start_img, 0.8)
-exit_button = Button(450, 200, exit_img, 0.8)
+score_board = Button(450, 120, exit_img, 0.4)
 
 #game loop
 run = True
@@ -51,7 +51,7 @@ while run:
 
 	if start_button.draw(screen):
 		import main
-	if exit_button.draw(screen):
+	if score_board.draw(screen):
 		run = False
 
 	#event handler
