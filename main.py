@@ -1,6 +1,8 @@
 import random
 import pygame
 import sys
+from pygame import mixer
+
 
 height = 600
 width = 1000
@@ -15,6 +17,18 @@ else:
     username2 = "Player 2"
 
 pygame.init()
+mixer.init()
+
+bullet_sound = mixer.Sound('arrow_s.mp3')
+score_sound = mixer.Sound('success.mp3')
+tictac = mixer.Sound('tictac.mp3')
+empty_shot = mixer.Sound('empty_shot.mp3')
+
+mixer.music.load('game_sound.mp3')
+mixer.music.set_volume(0.3)
+mixer.music.play()
+
+
 
 # initialize the font
 font = pygame.font.Font('slkscre.ttf', 20)  # Font for displaying time
@@ -43,9 +57,13 @@ class Player(pygame.sprite.Sprite):
         (event.key == pygame.K_SPACE and self.is_player1 == False) or
         (event.key == pygame.K_RETURN and self.is_player1)):
             self.num -= 1
+            bullet_sound.play()
             all_sprites.add(Bullet(self.is_player1,self.rect.x,self.rect.y))
             bullets.add(Bullet(self.is_player1,self.rect.x,self.rect.y))
-    
+        if self.num == 0 and self.time > 0 and (
+        (event.key == pygame.K_SPACE and self.is_player1 == False) or
+        (event.key == pygame.K_RETURN and self.is_player1)):
+            empty_shot.play()
     def move(self):
         keys = pygame.key.get_pressed()
         # Move player 1 
@@ -173,11 +191,13 @@ while True:
     # prevent time from going negative
     p1.time = max(0, p1.time)
     p2.time = max(0, p2.time)
-
+    if p1.time <= 10 or p2.time <= 10 :
+        tictac.play()
     # End the game if time runs out
     if p1.time <= 0 and p2.time <= 0:
         print("Game Over!")
         exit()
+
     # End the game if bullets end
     if p1.num <= 0 and p2.num <= 0:
         print("Game Over!")
@@ -234,6 +254,7 @@ while True:
                     else:
                         p2.num += 3
                 if type(target) == Score_target:
+                    score_sound.play()
                     if bullet.is_player1:
                         p1.score += 100
                     else:
